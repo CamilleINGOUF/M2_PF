@@ -1,3 +1,5 @@
+-- marche po et on s'en blc
+
 import Control.Monad
 import System.Exit
 import System.Random
