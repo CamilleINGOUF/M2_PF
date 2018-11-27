@@ -1,7 +1,7 @@
 import Data.List
 
 map_reduce_1 :: Ord t1 => (t2 -> [a]) -> (a -> [(t1, b)]) -> ([b] -> t) -> t2 -> [(t1, t)]
-map_reduce_1 the_split the_map the_reduce dat = map (\(a,b) -> (a,(the_reduce b))) (shuffle (foldl (++) [] (map the_map (the_split dat))))
+map_reduce_1 the_split the_map the_reduce dat = map (\(a,b) -> (a,(the_reduce b))) (shuffle (concat (map the_map (the_split dat))))
 
 wc_split::String -> [String]
 wc_split dat = cut '\n' dat
