@@ -78,6 +78,20 @@ insertPoint (Node (x,y) lt rt) (xx,yy) False
   | yy > y = (Node (x,y) lt (insertPoint rt (xx,yy) True))
   | otherwise = (Node (x,y) (insertPoint lt (xx,yy) True) rt)
 
+countRangePoint::Tree (Int,Int) -> (Int, Int, Int, Int) -> Bool -> Int
+countRangePoint Empty _ _ = 0
+countRangePoint (Node (x,_) lt rt) (x1, y1, x2, y2) True
+  | x < x1 = countRt
+  | x > x2 = countLt
+  | otherwise = 1 + countLt + countRt
+  where countLt = countRangePoint lt (x1, y1, x2, y2) False
+        countRt = countRangePoint rt (x1, y1, x2, y2) False
+countRangePoint (Node (_,y) lt rt) (x1, y1, x2, y2) False
+  | y < y1 = countRt
+  | y > y2 = countLt
+  | otherwise = 1 + countLt + countRt
+  where countLt = countRangePoint lt (x1, y1, x2, y2) True
+        countRt = countRangePoint rt (x1, y1, x2, y2) True
 
 main::IO()
 main = do
