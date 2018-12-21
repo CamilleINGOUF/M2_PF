@@ -9,6 +9,16 @@ data Screen = Screen {
   height::Int,
   shapes::[Shape]
 } deriving(Show)
+data Turtle = Turtle {
+  x::Int,
+  y::Int,
+  oriantation::Float,
+  draw::Bool
+} deriving(Show)
+data World = World {
+  turtle::Turtle,
+  screen::Screen
+} deriving(Show)
 
 getColor::Color -> String
 getColor Red = (getRGB (RGB 255 0 0))
@@ -19,7 +29,7 @@ getColor White = (getRGB (RGB 255 255 255))
 getColor Yellow = (getRGB (RGB 255 255 0))
 getColor Orange = (getRGB (RGB 255 140 0))
 getColor (Color rgb) = (getRGB rgb)
-getColor Random = getRGB (RGB (myRandom 256) (myRandom 256) (myRandom 256))
+getColor Random = getRGB (RGB (myRandom (0,255)) (myRandom (0,255)) (myRandom (0,255)))
 
 getRGB::RGB -> String
 getRGB (RGB r g b) = "rgb("++(show r)++","++(show g)++","++(show b)++")"
@@ -39,13 +49,53 @@ makeHtml (Screen w h shapes) = "<html><body><svg width=\""++(show w)++"\" height
 export::Screen -> IO()
 export screen = writeFile "turtle.html" (makeHtml screen)
 
-myRandom::Int -> Int
-myRandom n = unsafePerformIO (getStdRandom (randomR (0, n)))
+myRandom::(Int,Int) -> Int
+myRandom (m,n) = unsafePerformIO (getStdRandom (randomR (m, n)))
+
+randomShapes::[Shape]
+randomShapes = s
+  where
+    l = (Line Random ((myRandom (0,300)),(myRandom (0,300))) [(50,80), (-60,10), (20,-70)])
+    c = (Circle Random ((myRandom (0,300)),(myRandom (0,300))) 50)
+    r = (Rect Random ((myRandom (0,300)),(myRandom (0,300))) 60 50)
+    s = [c,r,l]
+
+initWorld::World
+initWorld = World (Turtle 0 0 0 True) (Screen 500 500 [Line Random (250,250) []])
+
+calculY::Int -> Float -> Integer
+calculY dist angle = toInteger (round ((sin angle) * (fromInteger (toInteger dist))))
+
+calculX::Int -> Float -> Integer
+calculX dist angle = toInteger (round ((cos angle) * (fromInteger (toInteger dist))))
+
+up::World -> World
+up ((World (Turtle x y o _) (Screen w h shapes))) = World (Turtle x y o False) (Screen w h shapes)
+
+down::World -> World
+down ((World (Turtle x y o _) (Screen w h shapes))) = World (Turtle x y o True) (Screen w h (shapes++[Line Random (x,y) []]))
+
+rotate::World -> Float -> World
+rotate ((World (Turtle x y o draw) (Screen w h shapes))) r = World (Turtle x y (o+r) draw) (Screen w h shapes)
+
+forward::World -> Int -> World
+forward (World (Turtle x y o True) (Screen w h shapes)) d = World t s
+    where 
+      xx = fromIntegral (calculX d o)
+      yy = fromIntegral (calculY d o)
+      t = Turtle xx yy o True
+      (Line col (lx,ly) l) = (last shapes)
+      s = Screen w h ((init shapes)++[Line col (lx,ly) (l++[(xx,yy)])])
+forward w _ = w
 
 main::IO()
 main = do
-  export (Screen 1000 1000 [c,r,l])
-  where
-      l = (Line Random (200,300) [(50,80), (-60,10), (20,-70)])
-      c = (Circle Random (50,50) 50)
-      r = (Rect Random (100,100) 60 50)
+  -- export (Screen 1000 1000 randomShapes)
+  print $ w6
+  export (screen w6)
+  where w = initWorld
+        w2 = forward w 60
+        w3 = rotate w2 (-pi/2)
+        w4 = forward w3 30
+        w5 = rotate w4 (pi/2)
+        w6 = forward w5 30
