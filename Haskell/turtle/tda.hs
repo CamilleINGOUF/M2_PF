@@ -1,6 +1,7 @@
 import System.Random
+import System.IO.Unsafe
 
-data Color = Color RGB | Red | Blue | Green | Black | White | Yellow | Orange deriving(Show)
+data Color = Color RGB | Red | Blue | Green | Black | White | Yellow | Orange | Random deriving(Show)
 data RGB = RGB Int Int Int deriving(Show)
 data Shape = Circle Color (Int, Int) Int | Rect Color (Int, Int) Int Int | Line Color (Int, Int) [(Int,Int)] deriving(Show)
 data Screen = Screen {
@@ -18,6 +19,7 @@ getColor White = (getRGB (RGB 255 255 255))
 getColor Yellow = (getRGB (RGB 255 255 0))
 getColor Orange = (getRGB (RGB 255 140 0))
 getColor (Color rgb) = (getRGB rgb)
+getColor Random = getRGB (RGB (myRandom 256) (myRandom 256) (myRandom 256))
 
 getRGB::RGB -> String
 getRGB (RGB r g b) = "rgb("++(show r)++","++(show g)++","++(show b)++")"
@@ -37,9 +39,13 @@ makeHtml (Screen w h shapes) = "<html><body><svg width=\""++(show w)++"\" height
 export::Screen -> IO()
 export screen = writeFile "turtle.html" (makeHtml screen)
 
+myRandom::Int -> Int
+myRandom n = unsafePerformIO (getStdRandom (randomR (0, n)))
+
 main::IO()
 main = do
   export (Screen 1000 1000 [c,r,l])
-  where c = (Circle (Color (RGB 234 78 98)) (50,50) 50)
-        r = (Rect Blue (100,100) 60 50)
-        l = (Line Yellow (200,300) [(50,80), (-60,10), (20,-70)])
+  where
+      l = (Line Random (200,300) [(50,80), (-60,10), (20,-70)])
+      c = (Circle Random (50,50) 50)
+      r = (Rect Random (100,100) 60 50)
