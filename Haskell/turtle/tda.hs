@@ -88,14 +88,11 @@ forward (World (Turtle x y o True) (Screen w h shapes)) d = World t s
       s = Screen w h ((init shapes)++[Line col (lx,ly) (l++[(xx,yy)])])
 forward w _ = w
 
+square::World -> Int -> World
+square w c = (forward (rotate (forward w c) (pi/2)) c)
+
 main::IO()
 main = do
   -- export (Screen 1000 1000 randomShapes)
-  print $ w6
-  export (screen w6)
+  export (screen (square w 60))
   where w = initWorld
-        w2 = forward w 60
-        w3 = rotate w2 (-pi/2)
-        w4 = forward w3 30
-        w5 = rotate w4 (pi/2)
-        w6 = forward w5 30
