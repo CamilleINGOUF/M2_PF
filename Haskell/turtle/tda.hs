@@ -2,23 +2,30 @@ import System.Random
 import System.IO.Unsafe
 
 data Color = Color RGB | Red | Blue | Green | Black | White | Yellow | Orange | Random deriving(Show)
+
 data RGB = RGB Int Int Int deriving(Show)
+
 data Shape = Circle Color (Float, Float) Float | Rect Color (Float, Float) Float Float | Line Color (Float, Float) [(Float,Float)] deriving(Show)
+
 data Screen = Screen {
   width::Int,
   height::Int,
   shapes::[Shape]
 } deriving(Show)
+
 data Turtle = Turtle {
   x::Float,
   y::Float,
   oriantation::Float,
   draw::Bool
 } deriving(Show)
+
 data World = World {
   turtle::Turtle,
   screen::Screen
 } deriving(Show)
+
+data Order = AV Float | TD Float | Repeat Int [Order] deriving(Show)
 
 getColor::Color -> String
 getColor Red = (getRGB (RGB 255 0 0))
@@ -122,6 +129,23 @@ koch w _ _ 0 = w
 koch w c n m = koch (rotate (kochPiece w c n) (2*pi/3)) c n (m-1)
 -- } flocon
 
+-- { tortue
+repeatOrders::World -> [Order] -> Int -> World
+repeatOrders w _ 0 = w
+repeatOrders w o n = execOrders (repeatOrders w o (n-1)) o
+
+execOrder::World -> Order -> World
+execOrder w (Repeat n o) = repeatOrders w o n
+execOrder w (AV n) = forward w n
+execOrder w (TD n) = rotate w n
+
+execOrders::World -> [Order] -> World
+execOrders w l = foldl execOrder w l
+
+execProg::World -> [Order] -> World
+execProg w o = execOrders w o
+-- } tortue
+
 main::IO()
 main = do
   export (Screen 1000 1000 randomShapes) "aleatoire.html"
@@ -129,5 +153,7 @@ main = do
   export (screen (polygone w 5 46 46)) "polygone.html"
   export (screen (mill w 60)) "moulin.html"
   export (screen (koch w 300 2 3)) "flocon.html"
+  export (screen (execOrders w orders)) "repeat.html"
   where 
     w = initWorld
+    orders = [(Repeat 4 [(AV 100),(TD (pi/2))])]
