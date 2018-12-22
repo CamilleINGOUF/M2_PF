@@ -46,8 +46,8 @@ getLines ((x,y):ls) = "l "++(show x)++" "++(show y)++" "++(getLines ls)
 makeHtml::Screen -> String
 makeHtml (Screen w h shapes) = "<html><body><svg width=\""++(show w)++"\" height=\""++(show h)++"\">"++(foldl (++) "" (map convert shapes))++"</svg></body></html>"
 
-export::Screen -> IO()
-export screen = writeFile "turtle.html" (makeHtml screen)
+export::Screen -> String -> IO()
+export screen name = writeFile name (makeHtml screen)
 
 myRandom::(Int,Int) -> Int
 myRandom (m,n) = unsafePerformIO (getStdRandom (randomR (m, n)))
@@ -61,7 +61,7 @@ randomShapes = s
     s = [c,r,l]
 
 initWorld::World
-initWorld = World (Turtle 0 0 0 True) (Screen 1500 1500 [Line Random (250,250) []])
+initWorld = World (Turtle 0 0 0 True) (Screen 1500 1500 [Line Random (200,200) []])
 
 calculY::Float -> Float -> Float
 calculY dist angle = (sin angle) * dist
@@ -95,6 +95,7 @@ polygone::World -> Float -> Float -> Int -> World
 polygone w _ _ 0 = w
 polygone w c max n = rotate (forward (polygone w c max (n-1)) c) (pi/(max/2))
 
+-- moulin {
 blade::World -> Float -> World
 blade w c = forward (rotate (polygone (forward w c) c 4 4) (-pi)) c
 
@@ -105,7 +106,9 @@ mill w c = blade4
         blade2 = blade (rotate blade1 (pi/2)) c
         blade3 = blade (rotate blade2 (pi/2)) c
         blade4 = blade (rotate blade3 (pi/2)) c
+-- } moulin
 
+-- { Flocon
 kochPiece::World -> Float -> Int -> World
 kochPiece w c 0 = forward w c
 kochPiece w c n = kochPiece (rotate (kochPiece (rotate (kochPiece (rotate (kochPiece w cc nn) o) cc nn) o2) cc nn) o) cc nn
@@ -117,14 +120,14 @@ kochPiece w c n = kochPiece (rotate (kochPiece (rotate (kochPiece (rotate (kochP
 koch::World -> Float -> Int -> Int-> World
 koch w _ _ 0 = w
 koch w c n m = koch (rotate (kochPiece w c n) (2*pi/3)) c n (m-1)
+-- } flocon
 
 main::IO()
 main = do
-  -- export (Screen 1000 1000 randomShapes)
-  -- export (screen (square w 60))
-  -- export (screen (polygone w 5 46 46))
-  -- export (screen (mill init 60))
-  export (screen (koch init 300 2 3))
-  where
-    init = initWorld 
-    w = rotate init (pi/4)
+  export (Screen 1000 1000 randomShapes) "aleatoire.html"
+  export (screen (square w 60)) "carre.html"
+  export (screen (polygone w 5 46 46)) "polygone.html"
+  export (screen (mill w 60)) "moulin.html"
+  export (screen (koch w 300 2 3)) "flocon.html"
+  where 
+    w = initWorld
