@@ -27,6 +27,10 @@ data World = World {
 
 data Order = AV Float | TD Float | Repeat Int [Order] deriving(Show)
 
+data Instruction = Orders [Order] | Be String Int deriving(Show)
+
+data Program =  Instructions [Instruction] deriving(Show)
+
 getColor::Color -> String
 getColor Red = (getRGB (RGB 255 0 0))
 getColor Blue = (getRGB (RGB 0 0 255))
@@ -142,8 +146,10 @@ execOrder w (TD n) = rotate w n
 execOrders::World -> [Order] -> World
 execOrders w l = foldl execOrder w l
 
-execProg::World -> [Order] -> World
-execProg w o = execOrders w o
+execProg::World -> Program -> [(String, Int)] -> World
+execProg w (Instructions []) _ = w
+execProg w (Instructions ((Orders o):xs)) vars = execOrders (execProg w (Instructions xs) vars) o
+execProg w (Instructions ((Be var val):xs)) vars = w
 -- } tortue
 
 main::IO()
@@ -153,7 +159,8 @@ main = do
   export (screen (polygone w 5 46 46)) "polygone.html"
   export (screen (mill w 60)) "moulin.html"
   export (screen (koch w 300 2 3)) "flocon.html"
-  export (screen (execOrders w orders)) "repeat.html"
+  export (screen (execProg w (Instructions instructions) [])) "repeat.html"
   where 
     w = initWorld
-    orders = [(Repeat 4 [(AV 100),(TD (pi/2))])]
+    orders = [(Repeat 6 [(AV 100),(TD (pi/3))])]
+    instructions = [(Orders orders)]
