@@ -61,7 +61,7 @@ randomShapes = s
     s = [c,r,l]
 
 initWorld::World
-initWorld = World (Turtle 0 0 0 True) (Screen 500 500 [Line Random (250,250) []])
+initWorld = World (Turtle 0 0 0 True) (Screen 1500 1500 [Line Random (250,250) []])
 
 calculY::Int -> Float -> Integer
 calculY dist angle = toInteger (round ((sin angle) * (fromInteger (toInteger dist))))
@@ -106,12 +106,25 @@ mill w c = blade4
         blade3 = blade (rotate blade2 (pi/2)) c
         blade4 = blade (rotate blade3 (pi/2)) c
 
+piece::World -> Int -> Int -> World
+piece w c 1 = forward w c
+piece w c n = piece (rotate (piece (rotate (piece (rotate (piece w cc nn) o) cc nn) o2) cc nn) o) cc nn
+    where o = (-pi/3)
+          o2 = (2*pi/3)
+          nn = n - 1
+          cc = (div c 3)
+
+koch::World -> Int -> Int -> Int-> World
+koch w _ _ 0 = w
+koch w c n m = koch (rotate (piece w c n) (2*pi/3)) c n (m-1)
+
 main::IO()
 main = do
   -- export (Screen 1000 1000 randomShapes)
   -- export (screen (square w 60))
   -- export (screen (polygone w 5 46 46))
-  export (screen (mill init 60))
+  -- export (screen (mill init 60))
+  export (screen (koch init 300 2 3))
   where
     init = initWorld 
     w = rotate init (pi/4)
