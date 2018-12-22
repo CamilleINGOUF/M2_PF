@@ -89,10 +89,29 @@ forward (World (Turtle x y o True) (Screen w h shapes)) d = World t s
 forward w _ = w
 
 square::World -> Int -> World
-square w c = (forward (rotate (forward w c) (pi/2)) c)
+square w c = (forward (rotate (forward (rotate (forward (rotate (forward w c) (pi/2)) c) (pi/2)) c) (pi/2)) c)
+
+polygone::World -> Int -> Float -> Int -> World
+polygone w _ _ 0 = w
+polygone w c max n = rotate (forward (polygone w c max (n-1)) c) (pi/(max/2))
+
+blade::World -> Int -> World
+blade w c = forward (rotate (polygone (forward w c) c 4 4) (-pi)) c
+
+mill::World -> Int -> World
+mill w c = blade4
+      where
+        blade1 = blade (rotate w (pi/4))c
+        blade2 = blade (rotate blade1 (pi/2)) c
+        blade3 = blade (rotate blade2 (pi/2)) c
+        blade4 = blade (rotate blade3 (pi/2)) c
 
 main::IO()
 main = do
   -- export (Screen 1000 1000 randomShapes)
-  export (screen (square w 60))
-  where w = initWorld
+  -- export (screen (square w 60))
+  -- export (screen (polygone w 5 46 46))
+  export (screen (mill init 60))
+  where
+    init = initWorld 
+    w = rotate init (pi/4)

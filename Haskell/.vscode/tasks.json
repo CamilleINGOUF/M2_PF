@@ -6,7 +6,7 @@
         {
             "label": "runghc tda",
             "type": "shell",
-            "command": "stack runghc turtle/tda.hs",
+            "command": "runghc tda.hs",
             "problemMatcher": []
         }
     ]
